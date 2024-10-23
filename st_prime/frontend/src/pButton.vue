@@ -1,8 +1,5 @@
 <template>
-  <span>
-    Hello, {{ args.name }}! &nbsp;
-    <button @click="onClicked">Click Me!</button>
-  </span>
+    <Button @click="onClicked">{{ args.name }}</Button>
 </template>
 
 <script>
@@ -11,10 +8,10 @@ import { Streamlit } from "streamlit-component-lib"
 import { useStreamlit } from "./streamlit"
 
 export default {
-  name: "MyComponent",
-  props: ["args"], // Arguments that are passed to the plugin in Python are accessible in prop "args"
+  name: "pButton",
+  props: ["args"],
   setup() {
-    useStreamlit() // lifecycle hooks for automatic Streamlit resize
+    useStreamlit()
 
     const numClicks = ref(0)
     const onClicked = () => {
