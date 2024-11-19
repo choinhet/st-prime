@@ -10,7 +10,7 @@ def get_component_by_name(name: str) -> CustomComponent:
     if not _RELEASE:
         _component_func = components.declare_component(
             name,
-            url="http://localhost:5175",
+            url="http://localhost:5173",
         )
     else:
         parent_dir = os.path.dirname(os.path.abspath(__file__))
