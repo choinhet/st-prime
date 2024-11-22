@@ -12,7 +12,6 @@
       :style="style"
       :metaKeySelection="metaKey"
       removable-sort
-      filterDisplay="row"
       editMode="row"
       @row-edit-save="onRowEditSave"
       @row-select="rowSelectionEvent"
@@ -27,8 +26,6 @@
         />
       </div>
     </template>
-
-    <template #empty> No data found.</template>
 
     <Column
         v-for="col of args.columns"
@@ -46,7 +43,7 @@
 
     <Column
         :rowEditor="args.rowEditor"
-        style="width: 10%; min-width: 8rem"
+        style="width: 10%;"
         bodyStyle="text-align:center"
     />
   </DataTable>
