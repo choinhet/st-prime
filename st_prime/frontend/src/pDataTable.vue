@@ -16,7 +16,7 @@
       @row-edit-save="onRowEditSave"
       @row-select="rowSelectionEvent"
       @row-unselect="rowSelectionEvent"
-      class="w-fit"
+      class="w-full"
   >
     <template #header v-if=args.search>
       <div class="flex justify-end">
