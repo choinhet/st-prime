@@ -9,6 +9,7 @@
       :selection-mode="args.selectionMode"
       :scrollable="args.scrollable"
       :scrollHeight="args.scrollHeight"
+      :striped-rows="args.stripedRows"
       :style="style"
       :metaKeySelection="metaKey"
       removable-sort
@@ -76,6 +77,7 @@ export default {
       sortable: Boolean,
       scrollable: Boolean,
       scrollHeight: String,
+      stripedRows: Boolean,
       maxWidth: String,
     }
   },

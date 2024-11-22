@@ -74,6 +74,7 @@ def all_components():
         row_editor=True,
         search_bar=False,
         scrollable=True,
+        striped_rows=True,
         scroll_height="300px",
     )
 

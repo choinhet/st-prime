@@ -26,6 +26,7 @@ def datatable(
         search_placeholder: str = "Search",
         selection_callback: Optional[Callable[[List[int]], None]] = None,
         selection_mode: SelectionModes = "single",
+        striped_rows: bool = False,
         sortable: bool = True,
         width: Optional[str] = None,
 ) -> pd.DataFrame:
@@ -48,6 +49,7 @@ def datatable(
         scrollable=scrollable,
         scrollHeight=scroll_height,
         selectionMode=selection_mode,
+        stripedRows=striped_rows,
         maxWidth=width,
         comp=COMPONENT
     )
