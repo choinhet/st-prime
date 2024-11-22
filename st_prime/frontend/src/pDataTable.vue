@@ -4,6 +4,7 @@
       v-model:editingRows="editingRows"
       v-model:selection="selectedRows"
       :value="data"
+      :frozen-value="frozenRows"
       :paginator="Boolean(args.pagination)"
       :rows="args.pageSize"
       :selection-mode="args.selectionMode"
@@ -40,6 +41,7 @@
       <template #editor="{ data, field }">
         <InputText v-model="data[field]" autofocus fluid/>
       </template>
+
     </Column>
 
     <Column
@@ -69,6 +71,8 @@ export default {
         header: String,
       },
       frozenColumns: Array < String > [],
+      frozenRows: Array < Number > [],
+      footerRows: Array < Number > [],
       rowEditor: Boolean,
       hasSelectionCallback: Boolean,
       search: Boolean,
@@ -92,6 +96,21 @@ export default {
 
     const editingRows = ref([]);
     const selectedRows = ref([]);
+    const footerRows = ref([]);
+
+    const frozenRows = ref(
+        props.args.frozenRows ? props.args.frozenRows : []
+    );
+
+    for (let i = 0; i < frozenRows.value.length; i++) {
+      frozenRows.value[i] = data.value[frozenRows.value[i]]
+    }
+
+    if (props.args.footerRows) {
+      for (let i = 0; i < props.args.footerRows.length; i++) {
+        footerRows.value.push(data.value[props.args.footerRows[i]])
+      }
+    }
 
     const onRowEditSave = (event) => {
       let {newData, index} = event;
@@ -139,6 +158,7 @@ export default {
       rowSelectionEvent,
       style,
       frozenColumns,
+      frozenRows,
       frozenSide,
       metaKey
     }

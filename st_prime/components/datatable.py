@@ -16,6 +16,7 @@ SelectionModes = Literal["single", "multiple", "checkbox", "radiobutton"]
 def datatable(
         data: pd.DataFrame,
         frozen_columns: Optional[List[str]] = None,
+        frozen_rows: Optional[List[int]] = None,
         key: Optional[str] = None,
         page_size: int = 10,
         pagination: bool = True,
@@ -38,6 +39,7 @@ def datatable(
         data=data_dict,
         columns=columns,
         frozenColumns=frozen_columns,
+        frozenRows=frozen_rows,
         search=search_bar,
         rowEditor=row_editor,
         searchPlaceholder=search_placeholder,

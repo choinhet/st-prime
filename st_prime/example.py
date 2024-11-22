@@ -81,6 +81,7 @@ def all_components():
     data2 = sp.datatable(
         table_bigger_content(),
         frozen_columns=["Till_100", "small"],
+        frozen_rows=[0],
         pagination=False,
         search_bar=False,
         scrollable=True,
