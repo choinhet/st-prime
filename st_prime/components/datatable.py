@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Optional, Literal
+from typing import Optional, Literal, List, Callable
 
 import pandas as pd
 
@@ -10,20 +10,25 @@ COMPONENT = "datatable"
 
 log = logging.getLogger("st_prime")
 
+SelectionModes = Literal["single", "multiple", "checkbox", "radiobutton"]
+
 
 def datatable(
         data: pd.DataFrame,
-        search_bar: bool = True,
-        row_editor: bool = False,
-        search_placeholder: str = "Search",
+        frozen_columns: Optional[List[str]] = None,
         key: Optional[str] = None,
-        pagination: bool = True,
         page_size: int = 10,
+        pagination: bool = True,
+        row_editor: bool = False,
+        scroll_height: Optional[str] = None,
+        scrollable: bool = False,
+        search_bar: bool = True,
+        search_placeholder: str = "Search",
+        selection_callback: Optional[Callable[[List[int]], None]] = None,
+        selection_mode: SelectionModes = "single",
         sortable: bool = True,
-        selection_callback: Optional[callable] = None,
-        selection_mode: Literal["single", "multiple",
-        "checkbox", "radiobutton"] = "single",
-):
+        width: Optional[str] = None,
+) -> pd.DataFrame:
     _component = get_component_by_name(COMPONENT)
     columns = [{"field": col, "header": col} for col in data.columns]
     data_dict = data.to_dict(orient="records")
@@ -31,14 +36,19 @@ def datatable(
     result = _component(
         data=data_dict,
         columns=columns,
+        frozenColumns=frozen_columns,
         search=search_bar,
         rowEditor=row_editor,
         searchPlaceholder=search_placeholder,
+        hasSelectionCallback=bool(selection_callback),
         key=key,
         pagination=pagination,
         pageSize=page_size,
         sortable=sortable,
+        scrollable=scrollable,
+        scrollHeight=scroll_height,
         selectionMode=selection_mode,
+        maxWidth=width,
         comp=COMPONENT
     )
 

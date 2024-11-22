@@ -7,7 +7,10 @@
       :paginator="Boolean(args.pagination)"
       :rows="args.pageSize"
       :selection-mode="args.selectionMode"
-      :metaKeySelection="true"
+      :scrollable="args.scrollable"
+      :scrollHeight="args.scrollHeight"
+      :style="style"
+      :metaKeySelection="metaKey"
       removable-sort
       filterDisplay="row"
       editMode="row"
@@ -33,6 +36,8 @@
         :field="col.field"
         :header="col.header"
         :sortable="args.sortable"
+        :frozen="frozenColumns.includes(col.field)"
+        :align-frozen="frozenSide[col.field]"
     >
       <template #editor="{ data, field }">
         <InputText v-model="data[field]" autofocus fluid/>
@@ -65,11 +70,16 @@ export default {
         field: String,
         header: String,
       },
+      frozenColumns: Array < String > [],
       rowEditor: Boolean,
+      hasSelectionCallback: Boolean,
       search: Boolean,
       selectionMode: String,
       searchPlaceholder: String,
       sortable: Boolean,
+      scrollable: Boolean,
+      scrollHeight: String,
+      maxWidth: String,
     }
   },
 
@@ -95,11 +105,31 @@ export default {
     };
 
     const rowSelectionEvent = () => {
-      Streamlit.setComponentValue(JSON.stringify({
-        content: data.value,
-        selection: selectedRows.value,
-      }))
+      if (props.args.hasSelectionCallback) {
+        Streamlit.setComponentValue(JSON.stringify({
+          content: data.value,
+          selection: selectedRows.value,
+        }))
+      }
     }
+
+    const style = {
+      maxWidth: props.args.maxWidth ? props.args.maxWidth : '100%',
+      height: '100%',
+      whiteSpace: 'nowrap',
+    }
+
+    const frozenColumns = props.args.frozenColumns ? props.args.frozenColumns : []
+    const frozenSide = {}
+    for (let i = 0; i < frozenColumns.length; i++) {
+      if (i === 0) {
+        frozenSide[frozenColumns[i]] = 'left'
+      } else {
+        frozenSide[frozenColumns[i]] = frozenColumns[i - 1] === frozenColumns[i] ? 'left' : 'right'
+      }
+    }
+
+    const metaKey = props.args.selectionMode === 'multiple'
 
     return {
       filters,
@@ -108,6 +138,10 @@ export default {
       data,
       onRowEditSave,
       rowSelectionEvent,
+      style,
+      frozenColumns,
+      frozenSide,
+      metaKey
     }
   },
 }
