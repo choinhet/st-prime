@@ -50,12 +50,6 @@ test.describe('DataTable Component Tests', () => {
             await pageWithNavigation.waitForTimeout(1000);
             console.log('After timeout');
 
-            const isVisible = await frame.isVisible('text=Numbers').catch(e => {
-                console.log('Error checking visibility:', e);
-                return false;
-            });
-            console.log('Table frame found:', isVisible);
-
             // Check visibility of specific elements
             await expect(frame.getByText('Numbers')).toBeVisible({ timeout: 10000 });
             await expect(frame.getByText('Words')).toBeVisible();
