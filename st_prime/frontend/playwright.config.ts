@@ -32,7 +32,7 @@ export default defineConfig({
             timeout: 60000,
         },
         {
-            command: 'streamlit run ../example.py --logger.level=error',
+            command: 'streamlit run ../example.py',
             url: 'http://localhost:8501',
             reuseExistingServer: !process.env.CI,
             stdout: 'ignore',
