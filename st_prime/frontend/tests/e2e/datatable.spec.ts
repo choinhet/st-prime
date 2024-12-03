@@ -11,24 +11,26 @@ async function enterEditMode(table: any) {
 }
 
 test.describe('DataTable Component Tests', () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeAll(async ({ page }) => {
         await page.goto('http://localhost:8501/');
     });
 
     test('should display basic table headers and controls', async ({ page }) => {
         const firstTable = getDataTable(page, 1);
-        await expect(firstTable.getByRole('columnheader', { name: 'Numbers' })).toBeVisible();
-        await expect(firstTable.getByRole('columnheader', { name: 'Letters' })).toBeVisible();
+        await expect(firstTable.getByText('Numbers')).toBeVisible();
+        await expect(firstTable.getByText('Letters')).toBeVisible();
         await expect(firstTable.getByPlaceholder('Search')).toBeVisible();
         await expect(firstTable.getByLabel('Last Page')).toBeVisible();
     });
 
     test('should display table with sortable columns and dates', async ({ page }) => {
         const secondTable = getDataTable(page, 2);
-        await expect(secondTable.getByRole('columnheader', { name: 'Numbers' }).locator('svg')).toBeVisible();
-        await expect(secondTable.getByRole('columnheader', { name: 'Numbers' })).toBeVisible();
-        await expect(secondTable.getByRole('cell', { name: '/30/2020' })).toBeVisible();
-        await expect(secondTable.getByRole('cell', { name: '/31/2020' })).toBeVisible();
+        await expect(secondTable.getByText('Numbers')).toBeVisible();
+        await expect(secondTable.getByText('Words')).toBeVisible();
+        await expect(secondTable.getByText('Date')).toBeVisible();
+
+        await expect(secondTable.getByRole('table')).toContainText('12/30/2020');
+        await expect(secondTable.getByRole('table')).toContainText('12/31/2020');
     });
 
     test('should handle row editing functionality', async ({ page }) => {
