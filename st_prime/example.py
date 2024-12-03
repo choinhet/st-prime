@@ -1,6 +1,7 @@
 import logging
 import random
 import string
+from datetime import datetime, timedelta
 
 import pandas as pd
 import streamlit as st
@@ -18,21 +19,20 @@ def table_content() -> pd.DataFrame:
         {
             "Numbers": list(range(100)),
             "Letters": [
-                "".join(random.choices(string.ascii_letters, k=4)) for _
-                in range(100)
-            ]
+                "".join(random.choices(string.ascii_letters, k=4)) for _ in range(100)
+            ],
         }
     )
 
 
 @st.cache_data
 def table_content_with_date() -> pd.DataFrame:
+    base_date = datetime(2020, 12, 31)
     return pd.DataFrame(
         {
             "Numbers": [1, 2, 3, 4, 5],
             "Words": ["one", "two", "three", "four", "five"],
-            "Date": ["2021-01-01", "2021-01-02", "2021-01-03", "2021-01-04",
-                     "2021-01-05"],
+            "Date": [base_date + timedelta(days=i) for i in range(5)],
             "Lists": [
                 ["One", "Two"],
                 ["Three", "Four"],
@@ -51,7 +51,8 @@ def table_bigger_content() -> pd.DataFrame:
             "Till_100": list(range(1, 101)),
             "String Column A": [f"String {i}" for i in range(1, 101)],
             "A middle column with a really big name, that will hide a column next to it": [
-                f"String {i}" for i in range(1, 101)],
+                f"String {i}" for i in range(1, 101)
+            ],
             "String Column C": [f"String {i}" for i in range(1, 101)],
             "small": [f"String {i}" for i in range(1, 101)],
         }
@@ -63,11 +64,7 @@ def all_components():
     if button1:
         st.toast("Button 1 clicked")
 
-    data = sp.datatable(
-        table_content(),
-        selection_mode="multiple",
-        page_size=5
-    )
+    data = sp.datatable(table_content(), selection_mode="multiple", page_size=5)
 
     row_editor = sp.datatable(
         table_content_with_date(),

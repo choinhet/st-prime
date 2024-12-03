@@ -14,6 +14,7 @@ export default defineConfig({
     use: {
         baseURL: 'http://localhost:8501',
         trace: 'on-first-retry',
+        headless: true,
     },
     projects: [
         {
@@ -31,11 +32,11 @@ export default defineConfig({
             timeout: 60000,
         },
         {
-            command: 'streamlit run ../example.py',
+            command: 'streamlit run ../example.py --logger.level=error',
             url: 'http://localhost:8501',
             reuseExistingServer: !process.env.CI,
-            stdout: 'pipe',
-            stderr: 'pipe',
+            stdout: 'ignore',
+            stderr: 'ignore',
             timeout: 60000,
         }
     ],
