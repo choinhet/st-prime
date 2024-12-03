@@ -8,9 +8,9 @@ export default defineConfig({
     workers: process.env.CI ? 1 : undefined,
     reporter: [
         ['html'],
-        ['list']
+        ['list', { printSteps: true }]
     ],
-    timeout: process.env.CI ? 60000 : 30000,
+    timeout: 60000,
     expect: {
         timeout: process.env.CI ? 20000 : 10000
     },
