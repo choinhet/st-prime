@@ -6,7 +6,10 @@ export default defineConfig({
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
     workers: process.env.CI ? 1 : undefined,
-    reporter: 'html',
+    reporter: [
+        ['html'],
+        ['list']
+    ],
     timeout: process.env.CI ? 60000 : 30000,
     expect: {
         timeout: process.env.CI ? 20000 : 10000
@@ -15,6 +18,12 @@ export default defineConfig({
         baseURL: 'http://localhost:8501',
         trace: 'on-first-retry',
         headless: true,
+        launchOptions: {
+            logger: {
+                isEnabled: (name) => true,
+                log: (name, message) => console.log(`${name} ${message}`)
+            }
+        }
     },
     projects: [
         {
