@@ -32,11 +32,11 @@ export default defineConfig({
             timeout: 120000,
         },
         {
-            command: 'uv run streamlit run ../example.py',
+            command: 'uv run streamlit run ../../example.py',
             url: 'http://localhost:8501',
             reuseExistingServer: !process.env.CI,
-            stdout: 'pipe',
-            stderr: 'pipe',
+            stdout: 'ignore',
+            stderr: 'ignore',
             timeout: 120000,
         }
     ],
