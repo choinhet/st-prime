@@ -7,9 +7,9 @@ export default defineConfig({
     retries: process.env.CI ? 2 : 0,
     workers: process.env.CI ? 1 : undefined,
     reporter: 'html',
-    timeout: 30000,
+    timeout: process.env.CI ? 60000 : 30000,
     expect: {
-        timeout: 10000
+        timeout: process.env.CI ? 20000 : 10000
     },
     use: {
         baseURL: 'http://localhost:8501',
@@ -29,15 +29,15 @@ export default defineConfig({
             reuseExistingServer: !process.env.CI,
             stdout: 'pipe',
             stderr: 'pipe',
-            timeout: 60000,
+            timeout: 120000,
         },
         {
             command: 'uv run streamlit run ../example.py',
             url: 'http://localhost:8501',
             reuseExistingServer: !process.env.CI,
-            stdout: 'ignore',
-            stderr: 'ignore',
-            timeout: 60000,
+            stdout: 'pipe',
+            stderr: 'pipe',
+            timeout: 120000,
         }
     ],
 }); 

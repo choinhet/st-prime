@@ -1,52 +1,97 @@
-# Streamlit Component Vue Vite Template
+# ST-Prime: Streamlit PrimeVue Components
 
-A template for creating Streamlit Components. It uses Vue 3 to code the frontend and Vite to serve the files locally during development, as well as bundle and compile them for production.
+A modern Streamlit Components library that brings PrimeVue components to Streamlit. Built with Vue 3, Vite, and TypeScript, it offers a rich set of UI components for building beautiful Streamlit applications.
 
-This repo contains templates and example code for creating [Streamlit](https://streamlit.io) Components. For complete information, please see the [Streamlit Components documentation](https://docs.streamlit.io/en/latest/streamlit_components.html)!
+## Features
 
-## Quickstart
+- 🎨 PrimeVue Components integration
+- ⚡️ Vue 3 + Vite + TypeScript
+- 🧪 End-to-end tests with Playwright
+- 📦 Modern dependency management with uv
+- 🚀 GitHub Actions CI/CD
+- 🎯 Type-safe development
 
-Ensure you have [Python 3.6+](https://www.python.org/downloads/), [Node.js](https://nodejs.org) and [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) installed.
+## Prerequisites
 
-1. Clone this repository:
-``` bash
-git clone git@github.com:gabrieltempass/streamlit-component-vue-vite-template.git
+- Python 3.9+
+- Node.js 18+
+- [uv](https://github.com/astral-sh/uv) for Python dependency management
+
+## Development Setup
+
+1. Clone the repository:
+```bash
+git clone https://github.com/choinhet/st-prime/
+cd st-prime
 ```
 
-2. Go to the `frontend` directory and initialize and run the component template frontend:
-``` bash
-cd streamlit-component-vue-vite-template/my_component/frontend
+2. Install Python dependencies with uv:
+```bash
+uv sync
 ```
-``` bash
+
+3. Install frontend dependencies:
+```bash
+cd st_prime/frontend
 npm install
+```
+
+4. Start the development servers:
+
+In one terminal (frontend):
+```bash
+cd st_prime/frontend
 npm run dev
 ```
 
-3. From a separate terminal, go to the repository root directory, create a new Python virtual environment, activate it and install Streamlit and the template as an editable package:
-``` bash
-cd streamlit-component-vue-vite-template
-```
-``` bash
-python3 -m venv venv
-. venv/bin/activate
-pip install streamlit
-pip install -e .
+In another terminal (Streamlit):
+```bash
+cd st_prime
+uv run streamlit run example.py
 ```
 
-Still from the same separate terminal, run the example Streamlit app:
-``` bash
-streamlit run my_component/example.py
+## Testing
+
+The project includes end-to-end tests (Playwright).
+
+### E2E Tests
+
+```bash
+cd st_prime/frontend
+npm run test:e2e          # Run all E2E tests
+npm run test:e2e:ui       # Run tests with Playwright UI
+npm run test:e2e:debug    # Run tests in debug mode
+npm run test:codegen      # Generate tests with Playwright Codegen
 ```
 
-If all goes well, you should see something like this:
+## CI/CD
 
-![Quickstart Success](quickstart.png)
+The project uses GitHub Actions for continuous integration. On each push and pull request to the main branch, it:
+- Installs dependencies
+- Runs E2E tests
+- Generates and uploads test reports
 
-Modify the frontend code at `my_component/frontend/src/MyComponent.vue`.
-Modify the Python code at `my_component/__init__.py`.
+## Project Structure
 
-## References
+```
+st_prime/
+├── frontend/              # Vue frontend
+│   ├── src/               # Source files
+│   ├── tests/             # Test files
+│   │   └── e2e/           # Playwright tests
+│   └── package.json       # Frontend dependencies
+├── pyproject.toml         # Python project configuration
+└── example.py             # Example Streamlit app
+```
 
-This template is based on:
-* [the original template made by the Streamlit team](https://github.com/streamlit/component-template/tree/master/template), that uses React (instead of Vue 3) and Webpack (instead of Vite).
-* [streamlit-component-template-vue](https://github.com/andfanilo/streamlit-component-template-vue/tree/vue3), by [@andfanilo](https://github.com/andfanilo), that uses Vue 2 or 3 and Webpack (instead of Vite). 
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+[MIT](LICENSE) - See LICENSE file for detailsVitest and 
