@@ -41,32 +41,30 @@ test.describe('DataTable Component Tests', () => {
     test('should display table with sortable columns and dates', async ({ pageWithNavigation }) => {
         try {
             console.log('Starting second test');
-            const secondTable = await getDataTable(pageWithNavigation, 2);
-            if (!secondTable) {
-                console.log('Table is null or undefined');
-                throw new Error('Table not found');
+            const locator = pageWithNavigation.locator('[data-testid="stCustomComponentV1"]').nth(2);
+            const frame = await locator.contentFrame();
+            if (!frame) {
+                console.log('Frame is null or undefined');
+                throw new Error('Frame not found');
             }
             await pageWithNavigation.waitForTimeout(1000);
             console.log('After timeout');
 
-            const isVisible = await secondTable.isVisible().catch(e => {
+            const isVisible = await frame.isVisible('text=Numbers').catch(e => {
                 console.log('Error checking visibility:', e);
                 return false;
             });
             console.log('Table frame found:', isVisible);
 
-            // Log the page content for debugging
-            console.log(await pageWithNavigation.content());
-
             // Check visibility of specific elements
-            await expect(secondTable.getByText('Numbers')).toBeVisible({ timeout: 10000 });
-            await expect(secondTable.getByText('Words')).toBeVisible();
-            await expect(secondTable.getByText('Date')).toBeVisible();
+            await expect(frame.getByText('Numbers')).toBeVisible({ timeout: 10000 });
+            await expect(frame.getByText('Words')).toBeVisible();
+            await expect(frame.getByText('Date')).toBeVisible();
 
             // Log if the table contains expected text
             console.log('Checking table content');
-            await expect(secondTable.getByRole('table')).toContainText('12/30/2020');
-            await expect(secondTable.getByRole('table')).toContainText('12/31/2020');
+            await expect(frame.getByRole('table')).toContainText('12/30/2020');
+            await expect(frame.getByRole('table')).toContainText('12/31/2020');
         } catch (error) {
             console.log('Test failed with error:', error);
             throw error;
