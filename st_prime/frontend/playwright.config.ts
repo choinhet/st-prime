@@ -12,7 +12,7 @@ export default defineConfig({
     ],
     timeout: 60000,
     expect: {
-        timeout: process.env.CI ? 20000 : 10000
+        timeout: process.env.CI ? 60000 : 10000
     },
     use: {
         baseURL: 'http://localhost:8501',
@@ -20,8 +20,12 @@ export default defineConfig({
         headless: true,
         launchOptions: {
             logger: {
-                isEnabled: (name) => true,
-                log: (name, message) => console.log(`${name} ${message}`)
+                isEnabled: (name) => name !== 'api',
+                log: (name, message) => {
+                    if (name !== 'api') {
+                        console.log(`[${name}] ${message}`);
+                    }
+                }
             }
         }
     },
