@@ -11,7 +11,14 @@ const test = base.extend<{ pageWithNavigation: any }>({
 });
 
 // Common selectors
-const getDataTable = (page: any, index: number) => page.locator('[data-testid="stCustomComponentV1"]').nth(index).contentFrame();
+const getDataTable = (page: any, index: number) => {
+    console.log(`Attempting to get data table at index ${index}`);
+    const locator = page.locator('[data-testid="stCustomComponentV1"]').nth(index);
+    console.log(`Locator created for index ${index}`);
+    const contentFrame = locator.contentFrame();
+    console.log(`Content frame obtained for index ${index}`);
+    return contentFrame;
+};
 
 // Helper function to enter edit mode
 async function enterEditMode(table: any) {
@@ -32,23 +39,38 @@ test.describe('DataTable Component Tests', () => {
     });
 
     test('should display table with sortable columns and dates', async ({ pageWithNavigation }) => {
-        console.log('Starting second test');
-        const secondTable = await getDataTable(pageWithNavigation, 2);
-        await pageWithNavigation.waitForTimeout(1000);
-        console.log('Table frame found:', await secondTable.isVisible());
+        try {
+            console.log('Starting second test');
+            const secondTable = await getDataTable(pageWithNavigation, 2);
+            if (!secondTable) {
+                console.log('Table is null or undefined');
+                throw new Error('Table not found');
+            }
+            await pageWithNavigation.waitForTimeout(1000);
+            console.log('After timeout');
 
-        // Log the page content for debugging
-        console.log(await pageWithNavigation.content());
+            const isVisible = await secondTable.isVisible().catch(e => {
+                console.log('Error checking visibility:', e);
+                return false;
+            });
+            console.log('Table frame found:', isVisible);
 
-        // Check visibility of specific elements
-        await expect(secondTable.getByText('Numbers')).toBeVisible({ timeout: 10000 });
-        await expect(secondTable.getByText('Words')).toBeVisible();
-        await expect(secondTable.getByText('Date')).toBeVisible();
+            // Log the page content for debugging
+            console.log(await pageWithNavigation.content());
 
-        // Log if the table contains expected text
-        console.log('Checking table content');
-        await expect(secondTable.getByRole('table')).toContainText('12/30/2020');
-        await expect(secondTable.getByRole('table')).toContainText('12/31/2020');
+            // Check visibility of specific elements
+            await expect(secondTable.getByText('Numbers')).toBeVisible({ timeout: 10000 });
+            await expect(secondTable.getByText('Words')).toBeVisible();
+            await expect(secondTable.getByText('Date')).toBeVisible();
+
+            // Log if the table contains expected text
+            console.log('Checking table content');
+            await expect(secondTable.getByRole('table')).toContainText('12/30/2020');
+            await expect(secondTable.getByRole('table')).toContainText('12/31/2020');
+        } catch (error) {
+            console.log('Test failed with error:', error);
+            throw error;
+        }
     });
 
     test('should handle row editing functionality', async ({ pageWithNavigation }) => {
