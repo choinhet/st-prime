@@ -4,6 +4,8 @@ import { test as base, expect } from '@playwright/test';
 const test = base.extend<{ pageWithNavigation: any }>({
     pageWithNavigation: async ({ page }, use) => {
         await page.goto('http://localhost:8501/');
+        await page.waitForLoadState('networkidle');
+        console.log('Page loaded successfully');
         await use(page);
     },
 });
@@ -20,7 +22,9 @@ async function enterEditMode(table: any) {
 
 test.describe('DataTable Component Tests', () => {
     test('should display basic table headers and controls', async ({ pageWithNavigation }) => {
-        const firstTable = getDataTable(pageWithNavigation, 1);
+        console.log('Starting first test');
+        const firstTable = await getDataTable(pageWithNavigation, 1);
+        await expect(firstTable).toBeTruthy();
         await expect(firstTable.getByText('Numbers')).toBeVisible();
         await expect(firstTable.getByText('Letters')).toBeVisible();
         await expect(firstTable.getByPlaceholder('Search')).toBeVisible();
@@ -28,8 +32,12 @@ test.describe('DataTable Component Tests', () => {
     });
 
     test('should display table with sortable columns and dates', async ({ pageWithNavigation }) => {
-        const secondTable = getDataTable(pageWithNavigation, 2);
-        await expect(secondTable.getByText('Numbers')).toBeVisible();
+        console.log('Starting second test');
+        const secondTable = await getDataTable(pageWithNavigation, 2);
+        await pageWithNavigation.waitForTimeout(1000);
+        console.log('Table frame found:', await secondTable.isVisible());
+
+        await expect(secondTable.getByText('Numbers')).toBeVisible({ timeout: 10000 });
         await expect(secondTable.getByText('Words')).toBeVisible();
         await expect(secondTable.getByText('Date')).toBeVisible();
 
