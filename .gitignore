@@ -168,3 +168,7 @@ cython_debug/
 
 # TypeScript
 *.tsbuildinfo
+
+# Playwright
+**/test-results/
+**/playwright-report/
