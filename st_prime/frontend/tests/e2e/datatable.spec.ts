@@ -1,4 +1,12 @@
-import { test, expect } from '@playwright/test';
+import { test as base, expect } from '@playwright/test';
+
+// Create a custom fixture
+const test = base.extend<{ pageWithNavigation: any }>({
+    pageWithNavigation: async ({ page }, use) => {
+        await page.goto('http://localhost:8501/');
+        await use(page);
+    },
+});
 
 // Common selectors
 const getDataTable = (page: any, index: number) => page.locator('[data-testid="stCustomComponentV1"]').nth(index).contentFrame();
@@ -11,20 +19,16 @@ async function enterEditMode(table: any) {
 }
 
 test.describe('DataTable Component Tests', () => {
-    test.beforeAll(async ({ page }) => {
-        await page.goto('http://localhost:8501/');
-    });
-
-    test('should display basic table headers and controls', async ({ page }) => {
-        const firstTable = getDataTable(page, 1);
+    test('should display basic table headers and controls', async ({ pageWithNavigation }) => {
+        const firstTable = getDataTable(pageWithNavigation, 1);
         await expect(firstTable.getByText('Numbers')).toBeVisible();
         await expect(firstTable.getByText('Letters')).toBeVisible();
         await expect(firstTable.getByPlaceholder('Search')).toBeVisible();
         await expect(firstTable.getByLabel('Last Page')).toBeVisible();
     });
 
-    test('should display table with sortable columns and dates', async ({ page }) => {
-        const secondTable = getDataTable(page, 2);
+    test('should display table with sortable columns and dates', async ({ pageWithNavigation }) => {
+        const secondTable = getDataTable(pageWithNavigation, 2);
         await expect(secondTable.getByText('Numbers')).toBeVisible();
         await expect(secondTable.getByText('Words')).toBeVisible();
         await expect(secondTable.getByText('Date')).toBeVisible();
@@ -33,8 +37,8 @@ test.describe('DataTable Component Tests', () => {
         await expect(secondTable.getByRole('table')).toContainText('12/31/2020');
     });
 
-    test('should handle row editing functionality', async ({ page }) => {
-        const secondTable = getDataTable(page, 2);
+    test('should handle row editing functionality', async ({ pageWithNavigation }) => {
+        const secondTable = getDataTable(pageWithNavigation, 2);
         await expect(secondTable.getByRole('cell', { name: 'Row Edit' }).first()).toBeVisible();
         await expect(secondTable.getByLabel('Two')).toBeVisible();
         await expect(secondTable.getByLabel('One')).toBeVisible();
@@ -46,8 +50,8 @@ test.describe('DataTable Component Tests', () => {
         await expect(secondTable.getByRole('cell', { name: '1', exact: true }).getByRole('button')).toBeVisible();
     });
 
-    test('should handle multi-select dropdown functionality', async ({ page }) => {
-        const secondTable = getDataTable(page, 2);
+    test('should handle multi-select dropdown functionality', async ({ pageWithNavigation }) => {
+        const secondTable = getDataTable(pageWithNavigation, 2);
         await enterEditMode(secondTable);
 
         await secondTable.getByRole('cell', { name: 'One Two' }).locator('svg').nth(2).click();
@@ -56,8 +60,8 @@ test.describe('DataTable Component Tests', () => {
         await expect(secondTable.getByRole('option', { name: 'Two' }).getByRole('checkbox')).toBeVisible();
     });
 
-    test('should handle date picker functionality', async ({ page }) => {
-        const secondTable = getDataTable(page, 2);
+    test('should handle date picker functionality', async ({ pageWithNavigation }) => {
+        const secondTable = getDataTable(pageWithNavigation, 2);
         await enterEditMode(secondTable);
 
         await secondTable.getByLabel('Choose Date').click();
@@ -65,8 +69,8 @@ test.describe('DataTable Component Tests', () => {
         await expect(secondTable.locator('td').filter({ hasText: '3030' }).locator('span')).toBeVisible();
     });
 
-    test('should handle adding new values to dropdown', async ({ page }) => {
-        const secondTable = getDataTable(page, 2);
+    test('should handle adding new values to dropdown', async ({ pageWithNavigation }) => {
+        const secondTable = getDataTable(pageWithNavigation, 2);
         await enterEditMode(secondTable);
 
         await secondTable.getByRole('cell', { name: 'One Two' }).click();
@@ -78,8 +82,8 @@ test.describe('DataTable Component Tests', () => {
         await expect(secondTable.getByRole('option', { name: 'Twelve' }).getByRole('checkbox')).toBeVisible();
     });
 
-    test('should handle editing and saving row values', async ({ page }) => {
-        const secondTable = getDataTable(page, 2);
+    test('should handle editing and saving row values', async ({ pageWithNavigation }) => {
+        const secondTable = getDataTable(pageWithNavigation, 2);
         await enterEditMode(secondTable);
 
         // Get the cell we want to edit and ensure it's visible
@@ -95,7 +99,7 @@ test.describe('DataTable Component Tests', () => {
         await expect(input).toBeVisible();
         await input.click();
         await input.fill('6');
-        await page.keyboard.press('Enter');
+        await pageWithNavigation.keyboard.press('Enter');
 
         // Save the changes
         await secondTable.getByLabel('Save Edit').click();
@@ -104,8 +108,8 @@ test.describe('DataTable Component Tests', () => {
         await expect(secondTable.getByRole('cell', { name: '6' })).toBeVisible();
     });
 
-    test('should display Till_100 column header', async ({ page }) => {
-        const thirdTable = getDataTable(page, 3);
+    test('should display Till_100 column header', async ({ pageWithNavigation }) => {
+        const thirdTable = getDataTable(pageWithNavigation, 3);
         await expect(thirdTable.getByRole('columnheader', { name: 'Till_100' })).toBeVisible();
     });
 });
