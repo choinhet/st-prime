@@ -37,10 +37,16 @@ test.describe('DataTable Component Tests', () => {
         await pageWithNavigation.waitForTimeout(1000);
         console.log('Table frame found:', await secondTable.isVisible());
 
+        // Log the page content for debugging
+        console.log(await pageWithNavigation.content());
+
+        // Check visibility of specific elements
         await expect(secondTable.getByText('Numbers')).toBeVisible({ timeout: 10000 });
         await expect(secondTable.getByText('Words')).toBeVisible();
         await expect(secondTable.getByText('Date')).toBeVisible();
 
+        // Log if the table contains expected text
+        console.log('Checking table content');
         await expect(secondTable.getByRole('table')).toContainText('12/30/2020');
         await expect(secondTable.getByRole('table')).toContainText('12/31/2020');
     });
