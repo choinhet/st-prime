@@ -1,10 +1,12 @@
 import { test, expect, FrameLocator, Page } from '@playwright/test';
 
-const getTable = (page: Page) => {
-    return page.locator('[data-testid="stCustomComponentV1"]').contentFrame();
+const getTable = async (page: Page) => {
+    const currentLocator = page.locator('[data-testid="stCustomComponentV1"]');
+    await currentLocator.waitFor({ state: 'visible' });
+    return currentLocator.contentFrame();
 };
 
-async function assertColumns(table: FrameLocator, columns: string[]) {
+const assertColumns = async (table: FrameLocator, columns: string[]) => {
     for (const column of columns) {
         await expect(table.getByRole('columnheader', { name: column })).toBeVisible();
     }
@@ -12,7 +14,7 @@ async function assertColumns(table: FrameLocator, columns: string[]) {
 
 test('Test Basic DataTable Interactions', async ({ page }) => {
     await page.goto('http://localhost:8501/page_2');
-    const table = getTable(page);
+    const table = await getTable(page);
     await assertColumns(table, ['Letters', 'Numbers']);
     await table.getByRole('columnheader', { name: 'Letters' }).locator('svg').click();
     await expect(table.getByRole('cell', { name: 'Aaaa' }).first()).toBeVisible();
@@ -29,7 +31,7 @@ test('Test Basic DataTable Interactions', async ({ page }) => {
 
 test('Test Row Editing', async ({ page }) => {
     await page.goto('http://localhost:8501/page_3');
-    const table = getTable(page);
+    const table = await getTable(page);
     await assertColumns(table, ['Numbers', 'Words', 'Date', 'Lists']);
     await expect(table.getByRole('table')).toContainText('12/30/2020');
     await table.getByRole('row', { name: 'one 12/30/2020 One Two Row Edit' }).getByLabel('Row Edit').click();
@@ -66,7 +68,7 @@ test('Test Row Editing', async ({ page }) => {
 
 test('Test Frozen Columns', async ({ page }) => {
     await page.goto('http://localhost:8501/page_4');
-    const table = getTable(page);
+    const table = await getTable(page);
     await expect(table.getByRole('cell', { name: '1', exact: true }).first()).toBeVisible();
     await expect(table.locator('td:nth-child(5)').first()).toBeVisible();
 });
