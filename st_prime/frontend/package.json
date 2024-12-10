@@ -14,7 +14,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "test:codegen": "concurrently \"cd .. && streamlit run app.py\" \"npm run dev\" \"wait-on http://localhost:5173 && wait-on http://localhost:8501 && playwright codegen http://localhost:8501\""
+    "test:codegen": "concurrently \"streamlit run ../tests/test_root.py\" \"npm run dev\" \"wait-on http://localhost:5173 && wait-on http://localhost:8501 && playwright codegen http://localhost:8501\""
   },
   "dependencies": {
     "@primevue/core": "^4.1.1",

@@ -1,43 +1,17 @@
 <template>
-  <DataTable
-      v-model:filters="filters"
-      v-model:editingRows="editingRows"
-      v-model:selection="selectedRows"
-      :value="data"
-      :frozen-value="frozenRows"
-      :paginator="Boolean(args.pagination)"
-      :rows="args.pageSize"
-      :selection-mode="args.selectionMode"
-      :scrollable="args.scrollable"
-      :scrollHeight="args.scrollHeight"
-      :striped-rows="args.stripedRows"
-      :style="style"
-      :metaKeySelection="metaKey"
-      removable-sort
-      editMode="row"
-      @row-edit-save="onRowEditSave"
-      @row-select="rowSelectionEvent"
-      @row-unselect="rowSelectionEvent"
-      class="w-full"
-  >
+  <DataTable v-model:filters="filters" v-model:editingRows="editingRows" v-model:selection="selectedRows" :value="data"
+    :frozen-value="frozenRows" :paginator="Boolean(args.pagination)" :rows="args.pageSize"
+    :selection-mode="args.selectionMode" :scrollable="args.scrollable" :scrollHeight="args.scrollHeight"
+    :striped-rows="args.stripedRows" :style="style" :metaKeySelection="metaKey" removable-sort editMode="row"
+    @row-edit-save="onRowEditSave" @row-select="rowSelectionEvent" @row-unselect="rowSelectionEvent" class="w-full">
     <template #header v-if=args.search>
       <div class="flex justify-end">
-        <InputText
-            v-model="filters['global'].value"
-            :placeholder=String(args.searchPlaceholder)
-        />
+        <InputText v-model="filters['global'].value" :placeholder=String(args.searchPlaceholder) />
       </div>
     </template>
 
-    <Column
-        v-for="col of args.columns"
-        :key="col.field"
-        :field="col.field"
-        :header="col.header"
-        :sortable="args.sortable"
-        :frozen="frozenColumns.includes(col.field)"
-        :align-frozen="frozenSide[col.field]"
-    >
+    <Column v-for="col of args.columns" :key="col.field" :field="col.field" :header="col.header"
+      :sortable="args.sortable" :frozen="frozenColumns.includes(col.field)" :align-frozen="frozenSide[col.field]">
       <template #body="{ data: rowData, field }">
         <template v-if="col.type.startsWith('list_')">
           <div class="flex flex-wrap gap-1">
@@ -62,35 +36,19 @@
 
         <!-- Date/Datetime editor -->
         <template v-else-if="col.type === 'date' || col.type === 'datetime'">
-          <Calendar 
-            v-model="dateModelValue[field]"
-            :showTime="col.type === 'datetime'"
-            dateFormat="mm/dd/yy"
-            :showIcon="true"
-            @date-select="(date) => handleDateSelect(rowData, field, date)"
-            @hide="(date) => handleDateSelect(rowData, field, dateModelValue[field])"
-          />
+          <Calendar v-model="dateModelValue[field]" :showTime="col.type === 'datetime'" dateFormat="mm/dd/yy"
+            :showIcon="true" @date-select="(date) => handleDateSelect(rowData, field, date)"
+            @hide="(date) => handleDateSelect(rowData, field, dateModelValue[field])" />
         </template>
 
         <!-- List editors with autocomplete -->
         <template v-else-if="col.type.startsWith('list_')">
-          <MultiSelect
-            v-model="rowData[field]"
-            :options="col.distinctValues"
-            :placeholder="'Select values'"
-            :filter="true"
-            display="chip"
-            :showClear="true"
-            :showToggleAll="true"
-          >
+          <MultiSelect v-model="rowData[field]" :options="col.distinctValues" :placeholder="'Select values'"
+            :filter="true" display="chip" :showClear="true" :showToggleAll="true">
             <template #footer>
               <div class="p-2 border-top-1 surface-border">
-                <InputText 
-                  v-model="newListValues[field]" 
-                  placeholder="Add new value"
-                  class="p-inputtext-sm w-full"
-                  @keydown.enter.prevent="(e) => addNewListValue(rowData, field)"
-                />
+                <InputText v-model="newListValues[field]" placeholder="Add new value" class="p-inputtext-sm w-full"
+                  @keydown.enter.prevent="(e) => addNewListValue(rowData, field)" />
               </div>
             </template>
           </MultiSelect>
@@ -98,16 +56,10 @@
 
         <!-- Number/String editors with autocomplete -->
         <template v-else>
-          <AutoComplete
-            v-model="rowData[field]"
-            :suggestions="filteredSuggestions[field]"
-            :dropdown="true"
-            :forceSelection="false"
-            @complete="(e) => searchSuggestions(field, e.query)"
-            @item-select="(e) => handleItemSelect(field, e)"
-            @input="(e) => handleCustomInput(field, e)"
-            @keydown.enter.prevent="(e) => handleSimpleColumnEnter(rowData, field, e.target.value)"
-          >
+          <AutoComplete v-model="rowData[field]" :suggestions="filteredSuggestions[field]" :dropdown="true"
+            :forceSelection="false" @complete="(e) => searchSuggestions(field, e.query)"
+            @item-select="(e) => handleItemSelect(field, e)" @input="(e) => handleCustomInput(field, e)"
+            @keydown.enter.prevent="(e) => handleSimpleColumnEnter(rowData, field, e.target.value)">
             <template #item="slotProps">
               <div>{{ slotProps.item }}</div>
             </template>
@@ -116,19 +68,15 @@
       </template>
     </Column>
 
-    <Column
-        :rowEditor="args.rowEditor"
-        style="width: 10%;"
-        bodyStyle="text-align:center"
-    />
+    <Column :rowEditor="args.rowEditor" style="width: 10%;" bodyStyle="text-align:center" />
   </DataTable>
 </template>
 
 <script>
-import {useStreamlit} from "./streamlit"
-import {Streamlit} from "streamlit-component-lib"
-import {ref, reactive, watch} from 'vue';
-import {FilterMatchMode} from '@primevue/core/api';
+import { useStreamlit } from "./streamlit"
+import { Streamlit } from "streamlit-component-lib"
+import { ref, reactive, watch } from 'vue';
+import { FilterMatchMode } from '@primevue/core/api';
 
 // Import PrimeVue components
 import DataTable from 'primevue/datatable';
@@ -188,7 +136,7 @@ export default {
     const dateModelValue = reactive({})
 
     const filters = ref({
-      global: {value: null, matchMode: FilterMatchMode.CONTAINS},
+      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     });
 
     const editingRows = ref([]);
@@ -196,7 +144,7 @@ export default {
     const footerRows = ref([]);
 
     const frozenRows = ref(
-        props.args.frozenRows ? props.args.frozenRows : []
+      props.args.frozenRows ? props.args.frozenRows : []
     );
 
     for (let i = 0; i < frozenRows.value.length; i++) {
@@ -214,45 +162,73 @@ export default {
       if (newRows && newRows.length > 0) {
         const row = newRows[0];
         for (const col of props.args.columns) {
-          if (col.type === 'date' || col.type === 'datetime') {
+          if ((col.type === 'date' || col.type === 'datetime') && row[col.field] && row[col.field] !== 'YYYY-MM-DD') {
             const value = row[col.field];
-            if (value && value !== 'YYYY-MM-DD') {
-              dateModelValue[col.field] = new Date(value);
+
+            let date;
+            if (!value.includes('T')) {
+              // Parse as local-only date
+              const parts = value.split('-');
+              if (parts.length === 3) {
+                const [year, month, day] = parts.map(Number);
+                date = new Date(year, month - 1, day); // local date
+              } else {
+                date = new Date(value);
+              }
+            } else {
+              // If there's a time component, just use the standard constructor
+              date = new Date(value);
+            }
+
+            if (!isNaN(date)) {
+              dateModelValue[col.field] = date;
             }
           }
         }
       }
     });
 
+
     const formatDate = (value, format) => {
       if (!value || value === 'YYYY-MM-DD') return '';
-      try {
-        const date = new Date(value);
-        if (isNaN(date.getTime())) return value;
-        
-        // Convert Python strftime format to our format
-        const formatMap = {
-          '%Y': date.getFullYear(),
-          '%m': String(date.getMonth() + 1).padStart(2, '0'),
-          '%d': String(date.getDate()).padStart(2, '0'),
-          '%H': String(date.getHours()).padStart(2, '0'),
-          '%M': String(date.getMinutes()).padStart(2, '0'),
-          '%S': String(date.getSeconds()).padStart(2, '0')
-        };
-        
-        return format.replace(/%[YmdHMS]/g, match => formatMap[match] || match);
-      } catch {
-        return value;
+
+      let date;
+      if (!value.includes('T')) {
+        const parts = value.split('-');
+        if (parts.length === 3) {
+          const [year, month, day] = parts.map(Number);
+          date = new Date(year, month - 1, day);
+        } else {
+          // Fallback in case format isn't YYYY-MM-DD
+          date = new Date(value);
+        }
+      } else {
+        // If there's a time component, use the standard constructor
+        date = new Date(value);
       }
+
+      if (isNaN(date.getTime())) return value;
+
+      // Convert Python strftime format to our format
+      const formatMap = {
+        '%Y': date.getFullYear(),
+        '%m': String(date.getMonth() + 1).padStart(2, '0'),
+        '%d': String(date.getDate()).padStart(2, '0'),
+        '%H': String(date.getHours()).padStart(2, '0'),
+        '%M': String(date.getMinutes()).padStart(2, '0'),
+        '%S': String(date.getSeconds()).padStart(2, '0'),
+      };
+
+      return format.replace(/%[YmdHMS]/g, match => formatMap[match] || match);
     };
 
     const handleDateSelect = (rowData, field, date) => {
       if (!date) return;
-      
+
       // Check if the original value was a date-only string
       const originalValue = rowData[field];
       const isDateOnly = originalValue && !originalValue.includes('T');
-      
+
       if (date instanceof Date) {
         if (isDateOnly) {
           // If original was date-only, keep it date-only
@@ -267,7 +243,7 @@ export default {
     const searchSuggestions = (field, query) => {
       const column = props.args.columns.find(col => col.field === field);
       if (!column || !column.distinctValues) return;
-      
+
       filteredSuggestions[field] = column.distinctValues.filter(value =>
         String(value).toLowerCase().includes(query.toLowerCase())
       );
@@ -289,7 +265,7 @@ export default {
 
       const column = props.args.columns.find(col => col.field === field);
       if (!column) return;
-      
+
       if (!column.distinctValues.includes(value)) {
         column.distinctValues.push(value);
       }
@@ -319,7 +295,7 @@ export default {
     };
 
     const onRowEditSave = (event) => {
-      let {newData, index} = event;
+      let { newData, index } = event;
       data.value[index] = newData;
       Streamlit.setComponentValue(JSON.stringify({
         content: data.value,
@@ -386,21 +362,27 @@ export default {
 .p-autocomplete {
   width: 100%;
 }
+
 .p-calendar {
   width: 100%;
 }
+
 .p-multiselect {
   width: 100%;
 }
+
 .p-chip {
   margin: 2px;
 }
+
 .flex-wrap {
   flex-wrap: wrap;
 }
+
 .gap-1 {
   gap: 0.25rem;
 }
+
 .mr-1 {
   margin-right: 0.25rem;
 }
