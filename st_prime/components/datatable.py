@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Optional, Literal, List, Callable, Dict, Any, Union
+from typing import Collection, Optional, Literal, List, Callable, Dict, Any, Tuple, Type
 from datetime import datetime, date
 
 import pandas as pd
@@ -16,41 +16,48 @@ SelectionModes = Literal["single", "multiple", "checkbox", "radiobutton"]
 DateConversion = Literal["date", "datetime", "none"]
 
 
+def set_as_tuple(obj: Any) -> Tuple[Type, ...]:
+    """Convert a single object or a collection to a tuple of types."""
+    if not isinstance(obj, type):
+        obj = type(obj)
+    if isinstance(obj, Collection):
+        return tuple(obj)
+    return (obj,)
+
+
 def serialize_value(value):
     """Convert numpy/pandas types to Python native types for JSON serialization."""
-    if isinstance(value, (np.int64, np.int32, np.int16, np.int8)):
-        return int(value)
-    elif isinstance(value, (np.float64, np.float32, np.float16)):
-        return float(value)
-    elif isinstance(value, np.bool_):
-        return bool(value)
-    elif isinstance(value, (pd.Timestamp, datetime)):
-        return value.isoformat()
-    elif isinstance(value, date):
-        return value.isoformat()
-    elif isinstance(value, list):
-        return [serialize_value(item) for item in value]
-    elif pd.isna(value):
-        return None
+    type_map = {
+        np.integer: int,
+        np.floating: float,
+        np.bool_: bool,
+        (pd.Timestamp, datetime, date): lambda x: x.isoformat(),
+        list: lambda x: [serialize_value(item) for item in x],
+        dict: lambda x: {k: serialize_value(v) for k, v in x.items()},
+        pd.NA: lambda x: None,
+        pd.NaT: lambda x: None,
+        pd.DataFrame: lambda x: x.to_dict(orient="records"),
+    }
+
+    for types, converter in type_map.items():
+        if isinstance(value, set_as_tuple(types)):
+            return converter(value)
     return value
 
 
-def is_iso_date_string(value: str) -> bool:
+def is_iso_date_string(value: Any) -> bool:
     """Check if a string is in ISO date format."""
     try:
         if not isinstance(value, str):
             return False
-        # Try parsing as date first (YYYY-MM-DD)
         try:
-            datetime.strptime(value, "%Y-%m-%d")
+            date.fromisoformat(value)
             return True
         except ValueError:
-            # Try parsing as datetime (YYYY-MM-DDTHH:MM:SS...)
             datetime.fromisoformat(value)
             return True
     except (ValueError, TypeError):
         return False
-    return False
 
 
 def detect_column_types(
@@ -145,6 +152,7 @@ def datatable(
     page_size: int = 10,
     pagination: bool = True,
     row_editor: bool = False,
+    cell_editor: bool = False,
     scroll_height: Optional[str] = None,
     scrollable: bool = False,
     search_bar: bool = True,
@@ -153,6 +161,7 @@ def datatable(
     selection_mode: SelectionModes = "single",
     striped_rows: bool = False,
     sortable: bool = True,
+    size: Optional[Literal["small", "medium", "large"]] = None,
     width: Optional[str] = None,
     date_format: str = "%m/%d/%Y",
     date_conversion: DateConversion = "date",
@@ -191,12 +200,14 @@ def datatable(
             row_dict[col] = serialize_value(row[col])
         data_dict.append(row_dict)
 
+    size = size or "medium"
     result = _component(
         data=data_dict,
         columns=columns,
         frozenColumns=frozen_columns,
         frozenRows=frozen_rows,
         search=search_bar,
+        cellEditor=cell_editor,
         rowEditor=row_editor,
         searchPlaceholder=search_placeholder,
         hasSelectionCallback=bool(selection_callback),
@@ -208,6 +219,7 @@ def datatable(
         scrollHeight=scroll_height,
         selectionMode=selection_mode,
         stripedRows=striped_rows,
+        size=size,
         maxWidth=width,
         dateFormat=date_format,
         comp=COMPONENT,

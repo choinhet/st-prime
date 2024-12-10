@@ -2,11 +2,12 @@
   <DataTable v-model:filters="filters" v-model:editingRows="editingRows" v-model:selection="selectedRows" :value="data"
     :frozen-value="frozenRows" :paginator="Boolean(args.pagination)" :rows="args.pageSize"
     :selection-mode="args.selectionMode" :scrollable="args.scrollable" :scrollHeight="args.scrollHeight"
-    :striped-rows="args.stripedRows" :style="style" :metaKeySelection="metaKey" removable-sort editMode="row"
-    @row-edit-save="onRowEditSave" @row-select="rowSelectionEvent" @row-unselect="rowSelectionEvent" class="w-full">
-    <template #header v-if=args.search>
+    :striped-rows="args.stripedRows" :style="style" :metaKeySelection="metaKey" removable-sort :editMode="editMode"
+    @row-edit-save="onRowEditSave" @row-select="rowSelectionEvent" @row-unselect="rowSelectionEvent"
+    @cell-edit-complete="onCellEditComplete" :size="args.size" class="w-full">
+    <template #header v-if="args.search">
       <div class="flex justify-end">
-        <InputText v-model="filters['global'].value" :placeholder=String(args.searchPlaceholder) />
+        <InputText v-model="filters['global'].value" :placeholder="String(args.searchPlaceholder)" />
       </div>
     </template>
 
@@ -41,14 +42,15 @@
             @hide="(date) => handleDateSelect(rowData, field, dateModelValue[field])" />
         </template>
 
-        <!-- List editors with autocomplete -->
+        <!-- List editors with MultiSelect -->
         <template v-else-if="col.type.startsWith('list_')">
-          <MultiSelect v-model="rowData[field]" :options="col.distinctValues" :placeholder="'Select values'"
-            :filter="true" display="chip" :showClear="true" :showToggleAll="true">
+          <MultiSelect :ref="'multiSelect_' + field" v-model="rowData[field]" :options="col.distinctValues"
+            :placeholder="'Select values'" filter display="chip" :filterValue="multiSelectFilterValue[field]"
+            @filter="onMultiSelectFilter($event.value, field)">
             <template #footer>
-              <div class="p-2 border-top-1 surface-border">
-                <InputText v-model="newListValues[field]" placeholder="Add new value" class="p-inputtext-sm w-full"
-                  @keydown.enter.prevent="(e) => addNewListValue(rowData, field)" />
+              <div class="p-3 flex justify-between">
+                <Button label="Add new" text size="small" @click="onAddNewListValue(rowData, field)" />
+                <Button label="Ok" text size="small" @click="hideMultiSelectOverlay(field)" />
               </div>
             </template>
           </MultiSelect>
@@ -68,17 +70,16 @@
       </template>
     </Column>
 
-    <Column :rowEditor="args.rowEditor" style="width: 10%;" bodyStyle="text-align:center" />
+    <Column v-if="args.rowEditor" :rowEditor="true" style="width: 10%;" bodyStyle="text-align:center" />
   </DataTable>
 </template>
 
 <script>
 import { useStreamlit } from "./streamlit"
 import { Streamlit } from "streamlit-component-lib"
-import { ref, reactive, watch } from 'vue';
+import { ref, reactive, watch, getCurrentInstance } from 'vue';
 import { FilterMatchMode } from '@primevue/core/api';
 
-// Import PrimeVue components
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import InputText from 'primevue/inputtext';
@@ -87,6 +88,7 @@ import Calendar from 'primevue/calendar';
 import MultiSelect from 'primevue/multiselect';
 import AutoComplete from 'primevue/autocomplete';
 import Chip from 'primevue/chip';
+import Button from 'primevue/button';
 
 export default {
   name: "pDataTable",
@@ -99,6 +101,7 @@ export default {
     MultiSelect,
     AutoComplete,
     Chip,
+    Button,
   },
   props: {
     args: {
@@ -125,15 +128,19 @@ export default {
       stripedRows: Boolean,
       maxWidth: String,
       dateFormat: String,
+      cellEditor: Boolean,
+      size: String,
     }
   },
 
   setup(props) {
     useStreamlit()
+    const instance = getCurrentInstance(); // To access $refs in Composition API
     const data = ref(props.args.data)
     const filteredSuggestions = reactive({})
     const newListValues = reactive({})
     const dateModelValue = reactive({})
+    const multiSelectFilterValue = reactive({})
 
     const filters = ref({
       global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -157,29 +164,24 @@ export default {
       }
     }
 
-    // Watch for changes in editingRows to initialize dateModelValue
     watch(editingRows, (newRows) => {
       if (newRows && newRows.length > 0) {
         const row = newRows[0];
         for (const col of props.args.columns) {
           if ((col.type === 'date' || col.type === 'datetime') && row[col.field] && row[col.field] !== 'YYYY-MM-DD') {
             const value = row[col.field];
-
             let date;
             if (!value.includes('T')) {
-              // Parse as local-only date
               const parts = value.split('-');
               if (parts.length === 3) {
                 const [year, month, day] = parts.map(Number);
-                date = new Date(year, month - 1, day); // local date
+                date = new Date(year, month - 1, day);
               } else {
                 date = new Date(value);
               }
             } else {
-              // If there's a time component, just use the standard constructor
               date = new Date(value);
             }
-
             if (!isNaN(date)) {
               dateModelValue[col.field] = date;
             }
@@ -188,10 +190,8 @@ export default {
       }
     });
 
-
     const formatDate = (value, format) => {
       if (!value || value === 'YYYY-MM-DD') return '';
-
       let date;
       if (!value.includes('T')) {
         const parts = value.split('-');
@@ -199,17 +199,14 @@ export default {
           const [year, month, day] = parts.map(Number);
           date = new Date(year, month - 1, day);
         } else {
-          // Fallback in case format isn't YYYY-MM-DD
           date = new Date(value);
         }
       } else {
-        // If there's a time component, use the standard constructor
         date = new Date(value);
       }
 
       if (isNaN(date.getTime())) return value;
 
-      // Convert Python strftime format to our format
       const formatMap = {
         '%Y': date.getFullYear(),
         '%m': String(date.getMonth() + 1).padStart(2, '0'),
@@ -224,17 +221,13 @@ export default {
 
     const handleDateSelect = (rowData, field, date) => {
       if (!date) return;
-
-      // Check if the original value was a date-only string
       const originalValue = rowData[field];
       const isDateOnly = originalValue && !originalValue.includes('T');
 
       if (date instanceof Date) {
         if (isDateOnly) {
-          // If original was date-only, keep it date-only
           rowData[field] = date.toISOString().split('T')[0];
         } else {
-          // Otherwise use the full ISO string
           rowData[field] = date.toISOString();
         }
       }
@@ -243,26 +236,20 @@ export default {
     const searchSuggestions = (field, query) => {
       const column = props.args.columns.find(col => col.field === field);
       if (!column || !column.distinctValues) return;
-
       filteredSuggestions[field] = column.distinctValues.filter(value =>
         String(value).toLowerCase().includes(query.toLowerCase())
       );
     };
 
     const handleItemSelect = (field, event) => {
-      // Handle when user selects an existing value
       console.log(`Selected ${event.value} for ${field}`);
     };
 
     const handleCustomInput = (field, event) => {
-      // Handle when user enters a custom value
       console.log(`Custom input ${event.target.value} for ${field}`);
     };
 
-    const addNewListValue = (rowData, field) => {
-      const value = newListValues[field];
-      if (!value) return;
-
+    const addNewListValue = (rowData, field, value) => {
       const column = props.args.columns.find(col => col.field === field);
       if (!column) return;
 
@@ -270,25 +257,28 @@ export default {
         column.distinctValues.push(value);
       }
 
-      // Add the new value to the current selection if not already present
-      if (Array.isArray(rowData[field]) && !rowData[field].includes(value)) {
-        rowData[field].push(value);
+      if (!Array.isArray(rowData[field])) {
+        rowData[field] = [];
       }
 
-      // Clear the input for next value
-      newListValues[field] = '';
+      if (!rowData[field].includes(value)) {
+        rowData[field].push(value);
+      }
+    };
+
+    const onAddNewListValue = (rowData, field) => {
+      const value = multiSelectFilterValue[field];
+      if (value && value.trim() !== '') {
+        addNewListValue(rowData, field, value.trim());
+      }
+      hideMultiSelectOverlay(field);
     };
 
     const handleSimpleColumnEnter = (rowData, field, value) => {
       if (!value) return;
-
       const column = props.args.columns.find(col => col.field === field);
       if (!column) return;
-
-      // Update the value
       rowData[field] = value;
-
-      // Add to distinct values if not present
       if (!column.distinctValues.includes(value)) {
         column.distinctValues.push(value);
       }
@@ -331,9 +321,36 @@ export default {
 
     const metaKey = props.args.selectionMode === 'multiple'
 
+    const onCellEditComplete = (event) => {
+      let { data: row, newValue, field } = event;
+      row[field] = newValue;
+      Streamlit.setComponentValue(JSON.stringify({
+        content: data.value,
+        selection: [],
+        selectionIndex: 0,
+      }));
+    };
+
+    const editMode = props.args.cellEditor ? 'cell' : 'row'
+
+    const onMultiSelectFilter = (value, field) => {
+      multiSelectFilterValue[field] = value;
+    };
+
+    function hideMultiSelectOverlay(field) {
+      const multiSelectRef = 'multiSelect_' + field;
+      const ms = instance.refs[multiSelectRef];
+      if (ms && ms[0] && ms[0].hide) {
+        ms[0].hide();
+      } else {
+        console.warn(`Cannot find MultiSelect ref for field: ${field}`);
+      }
+    }
+
     return {
       filters,
       editingRows,
+      editMode,
       selectedRows,
       data,
       onRowEditSave,
@@ -352,7 +369,12 @@ export default {
       addNewListValue,
       formatDate,
       handleDateSelect,
-      handleSimpleColumnEnter
+      handleSimpleColumnEnter,
+      onCellEditComplete,
+      multiSelectFilterValue,
+      onMultiSelectFilter,
+      onAddNewListValue,
+      hideMultiSelectOverlay,
     }
   },
 }
