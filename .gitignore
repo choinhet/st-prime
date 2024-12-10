@@ -172,3 +172,4 @@ cython_debug/
 # Playwright
 **/test-results/
 **/playwright-report/
+/.vscode/
